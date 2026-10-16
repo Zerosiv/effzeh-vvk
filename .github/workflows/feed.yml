@@ -1,0 +1,34 @@
+name: feed
+
+on:
+  schedule:
+    - cron: '17 4 * * *' # täglich 6:17 Uhr (MESZ) bzw. 5:17 Uhr (MEZ)
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write # Feed zurück ins Repo committen
+  actions: write  # Keepalive
+
+jobs:
+  feed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: node test.mjs
+      - run: node feed.mjs
+      - name: Feed committen, falls geändert
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@users.noreply.github.com
+          git add effzeh-vvk.ics
+          git diff --cached --quiet || { git commit -m "Feed aktualisiert"; git push; }
+      # shortcut: GitHub schaltet Cron-Workflows nach 60 Tagen ohne Repo-Aktivität ab (Sommerpause). Das Re-Enable per API soll den Zähler zurücksetzen; greift es nicht, warnt GitHub vorher per Mail und der Workflow wird einmal von Hand reaktiviert.
+      - name: Keepalive
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/feed.yml/enable"
+        env:
+          GH_TOKEN: ${{ github.token }}
