@@ -134,9 +134,12 @@ async function main() {
   const menUrl = collect(ticketing, o => typeof o.menMatchUrl === 'string')[0]?.menMatchUrl;
   const season = menUrl?.match(/saison\d{4}/)?.[0];
   if (!season) throw new Error(`Aktuelle Saison nicht ermittelbar (menMatchUrl: ${menUrl})`);
-  const schedule = new Map(collect(await get(menUrl), isMatch).map(m => [m.id, m]));
+  // Spielplan immer von einer Bundesliga-Seite: menMatchUrl zeigt an Pokaltagen auf die Pokalseite, die nur Pokalspiele kennt.
+  // shortcut: Liga-Slug fest auf 1-bundesliga, bei einem Abstieg schlägt die Prüfung unten laut fehl und der Slug muss angepasst werden.
+  const blUrl = `/mannschaften/maenner/1-bundesliga/${season}/1-spieltag/${infos.find(i => i.competition.name === 'Bundesliga')?.id}`;
+  const schedule = new Map(collect(await get(blUrl), isMatch).map(m => [m.id, m]));
   const koelnGames = [...schedule.values()].filter(m => m.home.id === KOELN_ID || m.away.id === KOELN_ID).length;
-  if (koelnGames < 30) throw new Error(`Spielplan unvollständig: nur ${koelnGames} Köln-Spiele unter ${menUrl}`);
+  if (koelnGames < 30) throw new Error(`Spielplan unvollständig: nur ${koelnGames} Köln-Spiele unter ${blUrl}`);
 
   const now = Date.now(), events = [];
   for (const info of infos) {
