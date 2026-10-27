@@ -164,7 +164,7 @@ async function main() {
     events.push({
       id: info.id, sale, windowOpens, opponent: match.away.shortname || match.away.name,
       dayBefore: [prev.getUTCFullYear(), prev.getUTCMonth() + 1, prev.getUTCDate()],
-      description: `Heimspiel gegen ${match.away.name}, ${match.match_date} ${match.match_time} Uhr (${info.competition.name}).\n\n` +
+      description: `Heimspiel gegen ${match.away.name}, ${match.match_date}${/\d/.test(match.match_time) ? ` ${match.match_time} Uhr` : ' (Anstoß noch offen)'} (${info.competition.name}).\n\n` +
         `1. Zwischen ${windowOpens} und ${mg.hour}:${String(mg.minute).padStart(2, '0')} den Ticketshop öffnen, FC-Mail-Adresse eingeben\n` +
         '2. Sechsstelliger Code kommt per Mail von no-reply@ticket-onlineshop.com (ggf. Spam)\n' +
         '3. Code eingeben → in der Warteschlange\n' +
